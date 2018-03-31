@@ -46,8 +46,6 @@ public class Image2MovieGenerator {
 		progressListeners.removeAll(removeCollection);
 	}
 
-
-
 	public void start() {
 		this.convertImagetoMovie(inputFile, outputFile);
 	}
@@ -84,7 +82,7 @@ public class Image2MovieGenerator {
 
 	protected void onProgress(int frame) {
 		for (ProgressListener pl : progressListeners) {
-			pl.onProgress(frames / frame, frame);
+			pl.onProgress((double) frame / (double) frames, frame);
 		}
 	}
 

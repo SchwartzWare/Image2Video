@@ -1,5 +1,6 @@
 package de.schwartzware.image2video_gui.view;
 
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -60,6 +61,10 @@ public class ImageViewer extends JPanel {
 
 			g.drawImage(img, 1 + widthWithoutBorder / 2 - newImgWidth / 2,
 					1 + heightWithoutBorder / 2 - newImgHeight / 2, newImgWidth, newImgHeight, this);
+		} else {
+			FontMetrics fm = g.getFontMetrics();
+			String placeholder = "Image";
+			g.drawString(placeholder, width / 2 - fm.stringWidth(placeholder) / 2, height / 2 + (fm.getHeight() / 2));
 		}
 
 		g.drawRect(0, 0, width - 1, height - 1);

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -37,8 +38,9 @@ import de.schwartzware.image2video_gui.model.RecorderProfile;
 import de.schwartzware.image2video_gui.model.RecorderProfiles;
 import de.schwartzware.image2video_gui.model.Utils;
 import de.schwartzware.image2video_gui.view.ImageViewer;
+import de.schwartzware.image2video_gui.view.ProgressButton;
 
-public class MainView extends JFrame implements ActionListener {
+public class MainView extends JFrame implements ActionListener, ItemListener {
 	/**
 	 * 
 	 */
@@ -47,13 +49,16 @@ public class MainView extends JFrame implements ActionListener {
 	protected JTextField txtImagePath;
 	protected JSpinner spnrDuration;
 	protected JButton btnChooseImage;
-	protected JButton btnGenerate;
+	protected ProgressButton btnGenerate;
 	protected ImageViewer pnlImage;
 	protected JComboBox<String> cboPresets;
+	protected JCheckBox ckbUseImageResolution;
 	protected JLabel lblProfile;
 	protected RecorderProfile[] profiles = { RecorderProfiles.H264_DEMO, RecorderProfiles.DNXHD_DEMO };
 
 	protected final String ACTION_BTN_CHOOSE_IMAGE = "btnChooseImage";
+
+	private File imgFile;
 
 	public MainView() {
 		try {
@@ -144,6 +149,7 @@ public class MainView extends JFrame implements ActionListener {
 		container.add(lblDuration, c);
 
 		spnrDuration = new JSpinner();
+		spnrDuration.setValue(2);
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.ipadx = 0;
 		c.ipady = 0; // reset to default
@@ -170,6 +176,7 @@ public class MainView extends JFrame implements ActionListener {
 		for (int i = 0; i < profiles.length; i += 1) {
 			cboPresets.addItem(profiles[i].name);
 		}
+		cboPresets.addItemListener(this);
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.ipadx = 0;
 		c.ipady = 0; // reset to default
@@ -178,11 +185,35 @@ public class MainView extends JFrame implements ActionListener {
 		c.gridy = gridy; // third row
 		container.add(cboPresets, c);
 
+		// 5th row
+		gridy += 1;
+
+		lblProfile = new JLabel("Use image size?");
+		c.weighty = 0;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.ipady = 0; // reset to default
+		c.gridwidth = 1;
+		c.weightx = 0;
+		c.weighty = 0; // request any extra vertical space
+		c.gridx = 0; // aligned with button 2
+		c.gridy = gridy; // third row
+		container.add(lblProfile, c);
+
+		ckbUseImageResolution = new JCheckBox();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.ipadx = 0;
+		c.ipady = 0; // reset to default
+		c.weightx = 2;
+		c.gridx = 1; // aligned with button 2
+		c.gridy = gridy; // third row
+		container.add(ckbUseImageResolution, c);
+
 		// Last row
 		gridy += 1;
 
-		btnGenerate = new JButton("Generate");
+		btnGenerate = new ProgressButton("Generate");
 		btnGenerate.addActionListener(this);
+		btnGenerate.setProgress(0.5f);
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.ipadx = 0;
 		c.ipady = 0; // reset to default
@@ -203,7 +234,7 @@ public class MainView extends JFrame implements ActionListener {
 			JFileChooser fileChooser = new JFileChooser();
 			fileChooser.setFileFilter(new ImageFilter());
 			if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-				File imgFile = fileChooser.getSelectedFile();
+				imgFile = fileChooser.getSelectedFile();
 				txtImagePath.setText(imgFile.getAbsolutePath());
 				pnlImage.setImageFile(imgFile);
 			}
@@ -211,17 +242,38 @@ public class MainView extends JFrame implements ActionListener {
 			int duration = (int) spnrDuration.getValue();
 			RecorderProfile profile = profiles[cboPresets.getSelectedIndex()];
 
-			Image2MovieGenerator gen = new Image2MovieGenerator(
-					new File("./scratched-and-scraped-metal-texture-2_1.jpg"), new File("./output." + profile.format),
+			Image2MovieGenerator gen = new Image2MovieGenerator(imgFile, new File("./output." + profile.format),
 					duration, profile);
-			gen.addProgressListener(new ProgressListener() {
+			ProgressListener l = new ProgressListener() {
 
 				@Override
 				public void onProgress(double progress, int frame) {
 					System.out.println("Frame: " + frame);
+					System.out.println("Progress: " + progress);
+					btnGenerate.setProgress((float) progress);
+					if (progress == 1.0) {
+						btnGenerate.setProgress(0);
+						gen.removeProgressListener(this);
+					}
 				}
-			});
-			gen.start();
+			};
+			gen.addProgressListener(l);
+			gen.setUseImageSizeAsResolution(ckbUseImageResolution.isSelected());
+			new Thread(() -> {
+				gen.start();
+			}).start();
+		}
+	}
+
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		if (e.getSource() == cboPresets) {
+			if (!profiles[cboPresets.getSelectedIndex()].allowCustomResolution) {
+				ckbUseImageResolution.setEnabled(false);
+				ckbUseImageResolution.setSelected(false);
+			} else {
+				ckbUseImageResolution.setEnabled(true);
+			}
 		}
 	}
 }
