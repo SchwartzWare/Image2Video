@@ -6,16 +6,27 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.LayoutManager;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
+import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileFilter;
 
@@ -25,6 +36,7 @@ import de.schwartzware.image2video_gui.model.ImageFilter;
 import de.schwartzware.image2video_gui.model.RecorderProfile;
 import de.schwartzware.image2video_gui.model.RecorderProfiles;
 import de.schwartzware.image2video_gui.model.Utils;
+import de.schwartzware.image2video_gui.view.ImageViewer;
 
 public class MainView extends JFrame implements ActionListener {
 	/**
@@ -32,84 +44,184 @@ public class MainView extends JFrame implements ActionListener {
 	 */
 	private static final long serialVersionUID = 1L;
 
-	protected JPanel container;
-	protected Button btnGenerateVideo;
-	protected Button btnChooseImage;
-	protected TextField txtImagePath;
+	protected JTextField txtImagePath;
+	protected JSpinner spnrDuration;
+	protected JButton btnChooseImage;
+	protected JButton btnGenerate;
+	protected ImageViewer pnlImage;
+	protected JComboBox<String> cboPresets;
+	protected JLabel lblProfile;
+	protected RecorderProfile[] profiles = { RecorderProfiles.H264_DEMO, RecorderProfiles.DNXHD_DEMO };
 
 	protected final String ACTION_BTN_CHOOSE_IMAGE = "btnChooseImage";
 
 	public MainView() {
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Throwable ex) {
+		} catch (Throwable e) {
+			e.printStackTrace();
 		}
 
-		container = new JPanel();
-		container.setLayout(null);
-		container.setSize(new Dimension(500, 500));
-		container.setPreferredSize(new Dimension(500, 500));
-
-		initGUI(container);
-		updateGUI(container);
-
+		JPanel container = new JPanel();
 		this.setContentPane(container);
 		this.pack();
+		this.setSize(500, 500);
 
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		Image2MovieGenerator gen = new Image2MovieGenerator(new File("./scratched-and-scraped-metal-texture-2_1.jpg"),
-				new File("./output.mxf"), 2, RecorderProfiles.DNXHD_DEMO);
-		gen.addProgressListener(new ProgressListener() {
-
-			@Override
-			public void onProgress(double progress, int frame) {
-				System.out.println("Frame: " + frame);
-			}
-		});
-		gen.start();
+		initGUI(container);
+		initEvents(container);
+		updateGUI(container);
 	}
 
-	protected void initGUI(Container container) {
-		txtImagePath = new TextField();
-		btnChooseImage = new Button();
-		btnGenerateVideo = new Button();
-
+	private void initEvents(JPanel container) {
 		btnChooseImage.addActionListener(this);
 	}
 
-	protected void updateGUI(Container container) {
-		container.setBackground(Color.WHITE);
+	private void initGUI(JPanel container) {
+		int gridx = 0;
+		int gridy = 0;
 
-		Font defaultFont = new Font("Arial", Font.PLAIN, 15);
-		int defaultMargin = 15;
-		txtImagePath.setLocation(defaultMargin, defaultMargin);
-		txtImagePath.setSize((int) (container.getWidth() * (2. / 3.)), 30);
-		txtImagePath.setFont(defaultFont.deriveFont(20f));
-		txtImagePath.setBackground(Color.BLACK);
-		txtImagePath.setForeground(Color.WHITE);
-		btnChooseImage.setSize((int) (container.getWidth() * (1. / 3.)) - defaultMargin * 3, 30);
-		btnChooseImage.setLocation((int) (container.getWidth() * (2. / 3.)) + defaultMargin * 2, txtImagePath.getY());
-		btnChooseImage.setLabel("Choose image");
-		btnChooseImage.setFont(defaultFont);
-		btnChooseImage.setBackground(Color.BLACK);
-		btnChooseImage.setForeground(Color.WHITE);
-		btnChooseImage.setActionCommand(ACTION_BTN_CHOOSE_IMAGE);
+		container.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
 
-		container.add(txtImagePath);
-		container.add(btnChooseImage);
+		// GUI elements
+
+		// First row
+		JPanel pnlFirstRow = new JPanel();
+		// pnlFirstRow.setBackground(Color.GREEN);
+		pnlFirstRow.setLayout(new GridBagLayout());
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridx = 0;
+		c.gridy = gridy;
+		c.gridwidth = 2;
+		container.add(pnlFirstRow, c);
+
+		c.insets = new Insets(10, 10, 10, 10); // top padding
+
+		txtImagePath = new JTextField();
+		txtImagePath.setEditable(false);
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.gridwidth = 1;
+		c.gridx = 0;
+		c.gridy = 0;
+		c.weightx = 1;
+
+		pnlFirstRow.add(txtImagePath, c);
+
+		btnChooseImage = new JButton("Choose image...");
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.ipadx = 40;
+		c.weightx = 0;
+		c.gridx = 1;
+		c.gridy = 0;
+
+		pnlFirstRow.add(btnChooseImage, c);
+
+		// Second row
+		gridy += 1;
+
+		pnlImage = new ImageViewer();
+		pnlImage.setBackground(Color.WHITE);
+		c.fill = GridBagConstraints.BOTH;
+		c.gridx = 0;
+		c.gridy = gridy;
+		c.weighty = 1;
+		c.gridwidth = 2;
+
+		container.add(pnlImage, c);
+
+		// 3rd row
+		gridy += 1;
+
+		JLabel lblDuration = new JLabel("Duration");
+		c.weighty = 0;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.ipady = 0; // reset to default
+		c.gridwidth = 1;
+		c.weightx = 0;
+		c.weighty = 0; // request any extra vertical space
+		c.gridx = 0; // aligned with button 2
+		c.gridy = gridy; // third row
+		container.add(lblDuration, c);
+
+		spnrDuration = new JSpinner();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.ipadx = 0;
+		c.ipady = 0; // reset to default
+		c.weightx = 2;
+		c.gridx = 1; // aligned with button 2
+		c.gridy = gridy; // third row
+		container.add(spnrDuration, c);
+
+		// 4th row
+		gridy += 1;
+
+		lblProfile = new JLabel("Profile");
+		c.weighty = 0;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.ipady = 0; // reset to default
+		c.gridwidth = 1;
+		c.weightx = 0;
+		c.weighty = 0; // request any extra vertical space
+		c.gridx = 0; // aligned with button 2
+		c.gridy = gridy; // third row
+		container.add(lblProfile, c);
+
+		cboPresets = new JComboBox<String>();
+		for (int i = 0; i < profiles.length; i += 1) {
+			cboPresets.addItem(profiles[i].name);
+		}
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.ipadx = 0;
+		c.ipady = 0; // reset to default
+		c.weightx = 2;
+		c.gridx = 1; // aligned with button 2
+		c.gridy = gridy; // third row
+		container.add(cboPresets, c);
+
+		// Last row
+		gridy += 1;
+
+		btnGenerate = new JButton("Generate");
+		btnGenerate.addActionListener(this);
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.ipadx = 0;
+		c.ipady = 0; // reset to default
+		c.weightx = 0;
+		c.gridx = 0; // aligned with button 2
+		c.gridy = gridy; // third row
+		c.gridwidth = 2;
+		container.add(btnGenerate, c);
+
+	}
+
+	private void updateGUI(JPanel container) {
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		switch (e.getActionCommand()) {
-		case ACTION_BTN_CHOOSE_IMAGE:
+		if (e.getSource() == btnChooseImage) {
 			JFileChooser fileChooser = new JFileChooser();
 			fileChooser.setFileFilter(new ImageFilter());
 			if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-				txtImagePath.setText(fileChooser.getSelectedFile().getAbsolutePath());
+				File imgFile = fileChooser.getSelectedFile();
+				txtImagePath.setText(imgFile.getAbsolutePath());
+				pnlImage.setImageFile(imgFile);
 			}
-			break;
+		} else if (e.getSource() == btnGenerate) {
+			int duration = (int) spnrDuration.getValue();
+			RecorderProfile profile = profiles[cboPresets.getSelectedIndex()];
+
+			Image2MovieGenerator gen = new Image2MovieGenerator(
+					new File("./scratched-and-scraped-metal-texture-2_1.jpg"), new File("./output." + profile.format),
+					duration, profile);
+			gen.addProgressListener(new ProgressListener() {
+
+				@Override
+				public void onProgress(double progress, int frame) {
+					System.out.println("Frame: " + frame);
+				}
+			});
+			gen.start();
 		}
 	}
 }

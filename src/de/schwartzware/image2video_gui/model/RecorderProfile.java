@@ -5,12 +5,13 @@ import java.awt.Dimension;
 import org.bytedeco.javacpp.avcodec;
 
 public class RecorderProfile {
+	public String name = "MPEG4";
 	public Dimension resolution = new Dimension(1920, 1080);
-	public int videoCodec = avcodec.AV_CODEC_ID_H264;
+	public int videoCodec = avcodec.AV_CODEC_ID_MPEG4;
 	public boolean interleaved = false;
 	public int videoBitrate = 3000000;
 	public String format = "mp4";
-	public double videoQuality = 1; // maximum quality
+	public double videoQuality = 0; // maximum quality
 	public double frameRate = 25;
 	public int pixelFormat = -1; // default
 
@@ -20,6 +21,7 @@ public class RecorderProfile {
 
 	public RecorderProfile copy() {
 		RecorderProfile rp = new RecorderProfile();
+		rp.name = name;
 		rp.resolution = resolution;
 		rp.videoCodec = videoCodec;
 		rp.interleaved = interleaved;
@@ -34,6 +36,11 @@ public class RecorderProfile {
 
 	public RecorderProfile setResolution(Dimension d) {
 		this.resolution = d;
+		return this;
+	}
+
+	public RecorderProfile changeName(String name) {
+		this.name = name;
 		return this;
 	}
 
@@ -67,9 +74,10 @@ public class RecorderProfile {
 		return this;
 	}
 
-	public static RecorderProfile make(Dimension resolution, int videoCodec, boolean interleaved, int videoBitrate,
-			String format, double videoQuality, double frameRate, int pixelFormat) {
+	public static RecorderProfile make(String name, Dimension resolution, int videoCodec, boolean interleaved,
+			int videoBitrate, String format, double videoQuality, double frameRate, int pixelFormat) {
 		RecorderProfile rp = new RecorderProfile();
+		rp.name = name;
 		rp.resolution = resolution;
 		rp.videoCodec = videoCodec;
 		rp.interleaved = interleaved;

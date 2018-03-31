@@ -46,16 +46,7 @@ public class Image2MovieGenerator {
 		progressListeners.removeAll(removeCollection);
 	}
 
-	public static Dimension getImageDimension(File imgFile) {
-		BufferedImage img = null;
-		try {
-			img = ImageIO.read(imgFile);
-		} catch (IOException e) {
-			return new Dimension(-1, -1);
-		}
 
-		return new Dimension(img.getWidth(), img.getHeight());
-	}
 
 	public void start() {
 		this.convertImagetoMovie(inputFile, outputFile);
@@ -65,7 +56,7 @@ public class Image2MovieGenerator {
 		OpenCVFrameConverter.ToIplImage grabberConverter = new OpenCVFrameConverter.ToIplImage();
 		Dimension resolution = recorderProfile.resolution;
 		if (useImageSizeAsResolution) {
-			resolution = Image2MovieGenerator.getImageDimension(imgFile);
+			resolution = Utils.getImageDimension(imgFile);
 		}
 		FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(outputFile.getAbsolutePath(), resolution.width,
 				resolution.height);
