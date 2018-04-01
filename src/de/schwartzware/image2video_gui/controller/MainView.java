@@ -67,6 +67,8 @@ public class MainView extends JFrame implements ActionListener, ItemListener {
 			e.printStackTrace();
 		}
 
+		this.setTitle("Image2Video");
+
 		JPanel container = new JPanel();
 		this.setContentPane(container);
 		this.pack();
