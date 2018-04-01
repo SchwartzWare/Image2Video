@@ -137,7 +137,7 @@ public class MainView extends JFrame implements ActionListener, ItemListener {
 		// 3rd row
 		gridy += 1;
 
-		JLabel lblDuration = new JLabel("Duration");
+		JLabel lblDuration = new JLabel("Duration (sec)");
 		c.weighty = 0;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.ipady = 0; // reset to default
@@ -213,7 +213,6 @@ public class MainView extends JFrame implements ActionListener, ItemListener {
 
 		btnGenerate = new ProgressButton("Generate");
 		btnGenerate.addActionListener(this);
-		btnGenerate.setProgress(0.5f);
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.ipadx = 0;
 		c.ipady = 0; // reset to default
