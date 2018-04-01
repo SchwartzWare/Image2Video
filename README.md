@@ -1,7 +1,7 @@
 # Image2Video
 Generate a video from an image.
 
-![Screenshot](.\img\screenshot.png)
+![Screenshot](documentation\screenshot.png)
 
 
 
